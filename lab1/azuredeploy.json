@@ -3,6 +3,19 @@
     "contentVersion": "1.0.0.0",
     "parameters": {},
     "variables": {},
-    "resources": [],
+    "resources": [
+        {
+            "type": "Microsoft.Storage/storageAccounts",
+            "apiVersion": "2018-07-01",
+            "name": "JROUSMELIOT",
+            "location": "[resourceGroup().location]",
+            "tags": {
+                "displayName": "JROUSMELIOT"
+            },
+            "Properties": {
+                "AccountType": "Standard_LRS"
+            }
+        }
+    ],
     "outputs": {}
 }
