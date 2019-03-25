@@ -8,10 +8,10 @@
         {
             "type": "Microsoft.Storage/storageAccounts",
             "apiVersion": "2018-07-01",
-            "name": "StorageAccount1",
+            "name": "seblab_SA2",
             "location": "[resourceGroup().location]",
             "tags": {
-                "displayName": "StorageAccount1"
+                    "displayName": "seblab_SA2"
             },
             "sku": {
                 "name": "Standard_LRS"
