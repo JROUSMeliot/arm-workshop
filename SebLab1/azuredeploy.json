@@ -1,17 +1,39 @@
 {
     "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
-    "parameters": {},
+    "parameters": {
+        "storageAccount": {
+            "type": "string",
+           "metadata": {
+                "description": "Test"
+            }
+        },
+        "AccountType": {
+           "type": "string",
+           "defaultValue": "Standard_LRS",
+           "allowedValues": [
+               "Standard_LRS",
+               "Premium_LRS",
+               "Standard_RAGRS"
+           ],
+           "metadata": {
+                "description": "SKU for the storge account"
+            }
+        }
+    },
     "variables": {},
     "resources": [
-
+        
         {
             "type": "Microsoft.Storage/storageAccounts",
             "apiVersion": "2018-07-01",
-            "name": "seblab_SA2",
+            "name": "[parameters('storageAccount')]",
             "location": "[resourceGroup().location]",
             "tags": {
-                    "displayName": "seblab_SA2"
+                    "displayName": "[parameters('storageAccount')] "
+            },
+            "properties" :{
+                "AccountType" : "[parameters('AccountType')]"
             },
             "sku": {
                 "name": "Standard_LRS"
