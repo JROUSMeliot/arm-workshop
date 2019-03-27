@@ -1,0 +1,1337 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "vmName": {
+      "type": "string",
+      "maxLength": 15,
+      "metadata": {
+        "description": "Name for the Virtual Machine"
+      }
+    },
+    "availabilitySetName": {
+      "type": "string",
+      "metadata": {
+        "description": "Availability Set name that we should deploy the VM into"
+      }
+    },
+    "updateDomainCount": {
+      "type": "int",
+      "metadata": {
+        "description": "Supply an update domain count for the Availability Set"
+      }
+    },
+    "faultDomainCount": {
+      "type": "int",
+      "metadata": {
+        "description": "Supply a fault domain count for the Availability Set"
+      }
+    },
+    "skuOS": {
+      "type": "string",
+      "defaultValue": "2016-Datacenter",
+      "allowedValues": [
+        "2016-Datacenter",
+        "2016-Datacenter-with-Containers",
+        "2012-R2-Datacenter",
+        "2012-Datacenter",
+        "2008-R2-SP1"
+      ],
+      "metadata": {
+        "description": "SKU for the OS image"
+      }
+    },
+    "vNetResourceGroup": {
+      "type": "string",
+      "metadata": {
+        "description": "Resource Group that the Virtual Network is deployed in"
+      }
+    },
+    "vNetName": {
+      "type": "string",
+      "metadata": {
+        "description": "Virtual Network to deploy to"
+      }
+    },
+    "subnetName": {
+      "type": "string",
+      "metadata": {
+        "description": "Subnet to place the VM in"
+      }
+    },
+    "vmSize": {
+      "type": "string",
+      "defaultValue": "Standard_D2s_v3",
+      "allowedValues": [
+        "Standard_D2s_v3",
+        "Standard_D4s_v3",
+        "Standard_D8s_v3",
+        "Standard_D16s_v3",
+        "Standard_E2s_v3",
+        "Standard_E4s_v3",
+        "Standard_E8s_v3",
+        "Standard_F2s_v2",
+        "Standard_F4s_v2",
+        "Standard_F8s_v2",
+        "Standard_F16s_v2",
+        "Standard_F32s_v2"        
+      ],
+      "metadata": {
+        "description": "VM size on Azure"
+      }
+    },
+    "osStorageType": {
+      "type": "string",
+      "defaultValue": "Premium_LRS",
+      "allowedValues": ["Premium_LRS"],
+      "metadata": {
+        "description": "Storage type for the OS managed disk"
+      }
+    },
+    "numDataDisk": {
+      "type": "int",
+      "defaultValue": "0",
+      "maxValue": 64,
+      "metadata": {
+        "description": "Number of data disks to deploy"
+      }
+    },
+    "dataStorageType": {
+      "type": "string",
+      "defaultValue": "Premium_LRS",
+      "allowedValues": ["Premium_LRS"],
+      "metadata": {
+        "description": "Storage type for the data managed disk(s)"
+      }
+    },
+    "dataDiskCaching": {
+      "type": "string",
+      "defaultValue": "None",
+      "allowedValues": [
+        "None",
+        "ReadOnly",
+        "ReadWrite"
+      ],
+      "metadata": {
+        "description": "Caching type for the data managed disk(s)"
+      }
+    },
+    "dataDiskSize": {
+      "type": "int",
+      "defaultValue": 128,
+      "minValue": 1,
+      "maxValue": 4093,
+      "metadata": {
+        "description": "Size in GB of data disks to deploy"
+      }
+    },
+    "adminUsername": {
+      "type": "string",
+      "minLength": 1,
+      "metadata": {
+        "description": "Local admin username for the Virtual Machine."
+      }
+    },
+    "diagStorageAccountName": {
+      "type": "string",
+      "metadata": {
+        "description": "Boot Diagnostic storage account name"
+      }
+    },
+    "diagStorageAccountRg": {
+      "type": "string",
+      "metadata": {
+        "description": "Boot Diagnostic storage account resource group"
+      }
+    },
+    "diagStorageAccountEndPoint": {
+        "type": "string",
+        "metadata": {
+          "description": "Boot Diagnostic storage account endpoint (Primary Blob Service Endpoint)"
+        }
+      },
+    "tags": {
+      "type": "object",
+      "metadata": {
+        "description": "Resource Tags"
+      }
+    },
+    "backupVaultRGName": {
+      "type": "string",
+      "metadata": { "description":"Backup Vault Resource Group"}
+    },
+    "backupVaultName": {
+      "type": "string",
+      "metadata": { "description":"Recovery Services Vault Name"}
+    },
+    "backupPolicyName": {
+      "type": "string",
+      "metadata": { "description":"Backup Vault Policy Name"}
+    },
+    "virtualMachineRG": {
+      "type": "string",
+      "metadata": { "description":"Virtual Resource Group Name"}
+    },
+    "logAnalyticsWorkspaceID": {
+      "type": "string",
+      "metadata": { "description":"Log Analytics Workspace ID"}
+      },
+    "logAnalyticsWorkspaceKey": {
+        "type": "string",
+        "metadata": { "description":"Log Analytics Workspace ID"}
+        },
+    "domainToJoin": {
+          "type": "string",
+          "metadata": { "description":"AD domain to join"}
+          },
+    "ouPath": {
+          "type": "string",
+          "metadata": { "description":"AD OU path"}
+          },
+     "domainUsername": {
+          "type": "string",
+          "metadata": { "description":"User account used to join AD domain"}
+           },
+      "domainJoinOptions": {
+           "type": "int",
+           "defaultValue": 3,
+           "metadata": { "description":"Set of bit flags that define the join options. Default value of 3 is a combination of NETSETUP_JOIN_DOMAIN (0x00000001) & NETSETUP_ACCT_CREATE (0x00000002) i.e. will join the domain and create the account on the domain. For more information see https://msdn.microsoft.com/en-us/library/aa392154(v=vs.85).aspx"}
+           },
+      "domainJoinPassword": {
+            "type": "string",
+            "metadata": { "description":"Password from keyvault for AD domain join"}
+            },
+      "localServerAdminPassword":{
+            "type": "string",
+            "metadata": { "description":"Password from keyvault for the local administrator account"}
+      }                 
+  },
+  "variables": {
+    "diagnosticStorageAccount":"[concat ('/providers/Microsoft.Storage/storageAccounts/', parameters('diagStorageAccountName'))]",
+    "nicName": "[concat(parameters('vmName'), '-nic0')]",
+    "osDiskName": "[concat(parameters('vmName'), '-os')]",
+    "vnetId": "[resourceId(parameters('vNetResourceGroup'), 'Microsoft.Network/virtualNetworks', parameters('vNetName'))]",
+    "subnetRef": "[concat(variables('vnetId'), '/subnets/', parameters('subnetName'))]",
+    "backupItemName":"[concat('vm;iaasvmcontainerv2;', parameters('virtualMachineRG'),';', parameters('vmName'))]",
+    "backupFabricName":"Azure",
+    "dataDiskArray": [
+      {
+        "name": "[concat(parameters('vmName'), '-data01')]",
+        "lun": 0,
+        "createOption": "Empty",
+        "managedDisk": {
+          "storageAccountType": "[parameters('osStorageType')]"
+        },
+        "caching": "[parameters('dataDiskCaching')]",
+        "diskSizeGB": "[parameters('dataDiskSize')]"
+      },
+      {
+        "name": "[concat(parameters('vmName'), '-data02')]",
+        "lun": 1,
+        "createOption": "Empty",
+        "managedDisk": {
+          "storageAccountType": "[parameters('dataStorageType')]"
+        },
+        "caching": "[parameters('dataDiskCaching')]",
+        "diskSizeGB": "[parameters('dataDiskSize')]"
+      },
+      {
+        "name": "[concat(parameters('vmName'), '-data03')]",
+        "lun": 2,
+        "createOption": "Empty",
+        "managedDisk": {
+          "storageAccountType": "[parameters('dataStorageType')]"
+        },
+        "caching": "[parameters('dataDiskCaching')]",
+        "diskSizeGB": "[parameters('dataDiskSize')]"
+      },
+      {
+        "name": "[concat(parameters('vmName'), '-data04')]",
+        "lun": 3,
+        "createOption": "Empty",
+        "managedDisk": {
+          "storageAccountType": "[parameters('dataStorageType')]"
+        },
+        "caching": "[parameters('dataDiskCaching')]",
+        "diskSizeGB": "[parameters('dataDiskSize')]"
+      },
+      {
+        "name": "[concat(parameters('vmName'), '-data05')]",
+        "lun": 4,
+        "createOption": "Empty",
+        "managedDisk": {
+          "storageAccountType": "[parameters('dataStorageType')]"
+        },
+        "caching": "[parameters('dataDiskCaching')]",
+        "diskSizeGB": "[parameters('dataDiskSize')]"
+      },
+      {
+        "name": "[concat(parameters('vmName'), '-data06')]",
+        "lun": 5,
+        "createOption": "Empty",
+        "managedDisk": {
+          "storageAccountType": "[parameters('dataStorageType')]"
+        },
+        "caching": "[parameters('dataDiskCaching')]",
+        "diskSizeGB": "[parameters('dataDiskSize')]"
+      },
+      {
+        "name": "[concat(parameters('vmName'), '-data07')]",
+        "lun": 6,
+        "createOption": "Empty",
+        "managedDisk": {
+          "storageAccountType": "[parameters('dataStorageType')]"
+        },
+        "caching": "[parameters('dataDiskCaching')]",
+        "diskSizeGB": "[parameters('dataDiskSize')]"
+      },
+      {
+        "name": "[concat(parameters('vmName'), '-data08')]",
+        "lun": 7,
+        "createOption": "Empty",
+        "managedDisk": {
+          "storageAccountType": "[parameters('dataStorageType')]"
+        },
+        "caching": "[parameters('dataDiskCaching')]",
+        "diskSizeGB": "[parameters('dataDiskSize')]"
+      },
+      {
+        "name": "[concat(parameters('vmName'), '-data09')]",
+        "lun": 8,
+        "createOption": "Empty",
+        "managedDisk": {
+          "storageAccountType": "[parameters('dataStorageType')]"
+        },
+        "caching": "[parameters('dataDiskCaching')]",
+        "diskSizeGB": "[parameters('dataDiskSize')]"
+      },
+      {
+        "name": "[concat(parameters('vmName'), '-data10')]",
+        "lun": 9,
+        "createOption": "Empty",
+        "managedDisk": {
+          "storageAccountType": "[parameters('dataStorageType')]"
+        },
+        "caching": "[parameters('dataDiskCaching')]",
+        "diskSizeGB": "[parameters('dataDiskSize')]"
+      },
+      {
+        "name": "[concat(parameters('vmName'), '-data11')]",
+        "lun": 10,
+        "createOption": "Empty",
+        "managedDisk": {
+          "storageAccountType": "[parameters('dataStorageType')]"
+        },
+        "caching": "[parameters('dataDiskCaching')]",
+        "diskSizeGB": "[parameters('dataDiskSize')]"
+      },
+      {
+        "name": "[concat(parameters('vmName'), '-data12')]",
+        "lun": 11,
+        "createOption": "Empty",
+        "managedDisk": {
+          "storageAccountType": "[parameters('dataStorageType')]"
+        },
+        "caching": "[parameters('dataDiskCaching')]",
+        "diskSizeGB": "[parameters('dataDiskSize')]"
+      },
+      {
+        "name": "[concat(parameters('vmName'), '-data13')]",
+        "lun": 12,
+        "createOption": "Empty",
+        "managedDisk": {
+          "storageAccountType": "[parameters('dataStorageType')]"
+        },
+        "caching": "[parameters('dataDiskCaching')]",
+        "diskSizeGB": "[parameters('dataDiskSize')]"
+      },
+      {
+        "name": "[concat(parameters('vmName'), '-data14')]",
+        "lun": 13,
+        "createOption": "Empty",
+        "managedDisk": {
+          "storageAccountType": "[parameters('dataStorageType')]"
+        },
+        "caching": "[parameters('dataDiskCaching')]",
+        "diskSizeGB": "[parameters('dataDiskSize')]"
+      },
+      {
+        "name": "[concat(parameters('vmName'), '-data15')]",
+        "lun": 14,
+        "createOption": "Empty",
+        "managedDisk": {
+          "storageAccountType": "[parameters('dataStorageType')]"
+        },
+        "caching": "[parameters('dataDiskCaching')]",
+        "diskSizeGB": "[parameters('dataDiskSize')]"
+      },
+      {
+        "name": "[concat(parameters('vmName'), '-data16')]",
+        "lun": 15,
+        "createOption": "Empty",
+        "managedDisk": {
+          "storageAccountType": "[parameters('dataStorageType')]"
+        },
+        "caching": "[parameters('dataDiskCaching')]",
+        "diskSizeGB": "[parameters('dataDiskSize')]"
+      },
+      {
+        "name": "[concat(parameters('vmName'), '-data17')]",
+        "lun": 16,
+        "createOption": "Empty",
+        "managedDisk": {
+          "storageAccountType": "[parameters('dataStorageType')]"
+        },
+        "caching": "[parameters('dataDiskCaching')]",
+        "diskSizeGB": "[parameters('dataDiskSize')]"
+      },
+      {
+        "name": "[concat(parameters('vmName'), '-data18')]",
+        "lun": 17,
+        "createOption": "Empty",
+        "managedDisk": {
+          "storageAccountType": "[parameters('dataStorageType')]"
+        },
+        "caching": "[parameters('dataDiskCaching')]",
+        "diskSizeGB": "[parameters('dataDiskSize')]"
+      },
+      {
+        "name": "[concat(parameters('vmName'), '-data19')]",
+        "lun": 18,
+        "createOption": "Empty",
+        "managedDisk": {
+          "storageAccountType": "[parameters('dataStorageType')]"
+        },
+        "caching": "[parameters('dataDiskCaching')]",
+        "diskSizeGB": "[parameters('dataDiskSize')]"
+      },
+      {
+        "name": "[concat(parameters('vmName'), '-data20')]",
+        "lun": 19,
+        "createOption": "Empty",
+        "managedDisk": {
+          "storageAccountType": "[parameters('dataStorageType')]"
+        },
+        "caching": "[parameters('dataDiskCaching')]",
+        "diskSizeGB": "[parameters('dataDiskSize')]"
+      },
+      {
+        "name": "[concat(parameters('vmName'), '-data21')]",
+        "lun": 20,
+        "createOption": "Empty",
+        "managedDisk": {
+          "storageAccountType": "[parameters('dataStorageType')]"
+        },
+        "caching": "[parameters('dataDiskCaching')]",
+        "diskSizeGB": "[parameters('dataDiskSize')]"
+      },
+      {
+        "name": "[concat(parameters('vmName'), '-data22')]",
+        "lun": 21,
+        "createOption": "Empty",
+        "managedDisk": {
+          "storageAccountType": "[parameters('dataStorageType')]"
+        },
+        "caching": "[parameters('dataDiskCaching')]",
+        "diskSizeGB": "[parameters('dataDiskSize')]"
+      },
+      {
+        "name": "[concat(parameters('vmName'), '-data23')]",
+        "lun": 22,
+        "createOption": "Empty",
+        "managedDisk": {
+          "storageAccountType": "[parameters('dataStorageType')]"
+        },
+        "caching": "[parameters('dataDiskCaching')]",
+        "diskSizeGB": "[parameters('dataDiskSize')]"
+      },
+      {
+        "name": "[concat(parameters('vmName'), '-data24')]",
+        "lun": 23,
+        "createOption": "Empty",
+        "managedDisk": {
+          "storageAccountType": "[parameters('dataStorageType')]"
+        },
+        "caching": "[parameters('dataDiskCaching')]",
+        "diskSizeGB": "[parameters('dataDiskSize')]"
+      },
+      {
+        "name": "[concat(parameters('vmName'), '-data25')]",
+        "lun": 24,
+        "createOption": "Empty",
+        "managedDisk": {
+          "storageAccountType": "[parameters('dataStorageType')]"
+        },
+        "caching": "[parameters('dataDiskCaching')]",
+        "diskSizeGB": "[parameters('dataDiskSize')]"
+      },
+      {
+        "name": "[concat(parameters('vmName'), '-data26')]",
+        "lun": 25,
+        "createOption": "Empty",
+        "managedDisk": {
+          "storageAccountType": "[parameters('dataStorageType')]"
+        },
+        "caching": "[parameters('dataDiskCaching')]",
+        "diskSizeGB": "[parameters('dataDiskSize')]"
+      },
+      {
+        "name": "[concat(parameters('vmName'), '-data27')]",
+        "lun": 26,
+        "createOption": "Empty",
+        "managedDisk": {
+          "storageAccountType": "[parameters('dataStorageType')]"
+        },
+        "caching": "[parameters('dataDiskCaching')]",
+        "diskSizeGB": "[parameters('dataDiskSize')]"
+      },
+      {
+        "name": "[concat(parameters('vmName'), '-data28')]",
+        "lun": 27,
+        "createOption": "Empty",
+        "managedDisk": {
+          "storageAccountType": "[parameters('dataStorageType')]"
+        },
+        "caching": "[parameters('dataDiskCaching')]",
+        "diskSizeGB": "[parameters('dataDiskSize')]"
+      },
+      {
+        "name": "[concat(parameters('vmName'), '-data29')]",
+        "lun": 28,
+        "createOption": "Empty",
+        "managedDisk": {
+          "storageAccountType": "[parameters('dataStorageType')]"
+        },
+        "caching": "[parameters('dataDiskCaching')]",
+        "diskSizeGB": "[parameters('dataDiskSize')]"
+      },
+      {
+        "name": "[concat(parameters('vmName'), '-data30')]",
+        "lun": 29,
+        "createOption": "Empty",
+        "managedDisk": {
+          "storageAccountType": "[parameters('dataStorageType')]"
+        },
+        "caching": "[parameters('dataDiskCaching')]",
+        "diskSizeGB": "[parameters('dataDiskSize')]"
+      },
+      {
+        "name": "[concat(parameters('vmName'), '-data31')]",
+        "lun": 30,
+        "createOption": "Empty",
+        "managedDisk": {
+          "storageAccountType": "[parameters('dataStorageType')]"
+        },
+        "caching": "[parameters('dataDiskCaching')]",
+        "diskSizeGB": "[parameters('dataDiskSize')]"
+      },
+      {
+        "name": "[concat(parameters('vmName'), '-data32')]",
+        "lun": 31,
+        "createOption": "Empty",
+        "managedDisk": {
+          "storageAccountType": "[parameters('dataStorageType')]"
+        },
+        "caching": "[parameters('dataDiskCaching')]",
+        "diskSizeGB": "[parameters('dataDiskSize')]"
+      },
+      {
+        "name": "[concat(parameters('vmName'), '-data33')]",
+        "lun": 32,
+        "createOption": "Empty",
+        "managedDisk": {
+          "storageAccountType": "[parameters('dataStorageType')]"
+        },
+        "caching": "[parameters('dataDiskCaching')]",
+        "diskSizeGB": "[parameters('dataDiskSize')]"
+      },
+      {
+        "name": "[concat(parameters('vmName'), '-data34')]",
+        "lun": 33,
+        "createOption": "Empty",
+        "managedDisk": {
+          "storageAccountType": "[parameters('dataStorageType')]"
+        },
+        "caching": "[parameters('dataDiskCaching')]",
+        "diskSizeGB": "[parameters('dataDiskSize')]"
+      },
+      {
+        "name": "[concat(parameters('vmName'), '-data35')]",
+        "lun": 34,
+        "createOption": "Empty",
+        "managedDisk": {
+          "storageAccountType": "[parameters('dataStorageType')]"
+        },
+        "caching": "[parameters('dataDiskCaching')]",
+        "diskSizeGB": "[parameters('dataDiskSize')]"
+      },
+      {
+        "name": "[concat(parameters('vmName'), '-data36')]",
+        "lun": 35,
+        "createOption": "Empty",
+        "managedDisk": {
+          "storageAccountType": "[parameters('dataStorageType')]"
+        },
+        "caching": "[parameters('dataDiskCaching')]",
+        "diskSizeGB": "[parameters('dataDiskSize')]"
+      },
+      {
+        "name": "[concat(parameters('vmName'), '-data37')]",
+        "lun": 36,
+        "createOption": "Empty",
+        "managedDisk": {
+          "storageAccountType": "[parameters('dataStorageType')]"
+        },
+        "caching": "[parameters('dataDiskCaching')]",
+        "diskSizeGB": "[parameters('dataDiskSize')]"
+      },
+      {
+        "name": "[concat(parameters('vmName'), '-data38')]",
+        "lun": 37,
+        "createOption": "Empty",
+        "managedDisk": {
+          "storageAccountType": "[parameters('dataStorageType')]"
+        },
+        "caching": "[parameters('dataDiskCaching')]",
+        "diskSizeGB": "[parameters('dataDiskSize')]"
+      },
+      {
+        "name": "[concat(parameters('vmName'), '-data39')]",
+        "lun": 38,
+        "createOption": "Empty",
+        "managedDisk": {
+          "storageAccountType": "[parameters('dataStorageType')]"
+        },
+        "caching": "[parameters('dataDiskCaching')]",
+        "diskSizeGB": "[parameters('dataDiskSize')]"
+      },
+      {
+        "name": "[concat(parameters('vmName'), '-data40')]",
+        "lun": 39,
+        "createOption": "Empty",
+        "managedDisk": {
+          "storageAccountType": "[parameters('dataStorageType')]"
+        },
+        "caching": "[parameters('dataDiskCaching')]",
+        "diskSizeGB": "[parameters('dataDiskSize')]"
+      },
+      {
+        "name": "[concat(parameters('vmName'), '-data41')]",
+        "lun": 40,
+        "createOption": "Empty",
+        "managedDisk": {
+          "storageAccountType": "[parameters('dataStorageType')]"
+        },
+        "caching": "[parameters('dataDiskCaching')]",
+        "diskSizeGB": "[parameters('dataDiskSize')]"
+      },
+      {
+        "name": "[concat(parameters('vmName'), '-data42')]",
+        "lun": 41,
+        "createOption": "Empty",
+        "managedDisk": {
+          "storageAccountType": "[parameters('dataStorageType')]"
+        },
+        "caching": "[parameters('dataDiskCaching')]",
+        "diskSizeGB": "[parameters('dataDiskSize')]"
+      },
+      {
+        "name": "[concat(parameters('vmName'), '-data43')]",
+        "lun": 42,
+        "createOption": "Empty",
+        "managedDisk": {
+          "storageAccountType": "[parameters('dataStorageType')]"
+        },
+        "caching": "[parameters('dataDiskCaching')]",
+        "diskSizeGB": "[parameters('dataDiskSize')]"
+      },
+      {
+        "name": "[concat(parameters('vmName'), '-data44')]",
+        "lun": 43,
+        "createOption": "Empty",
+        "managedDisk": {
+          "storageAccountType": "[parameters('dataStorageType')]"
+        },
+        "caching": "[parameters('dataDiskCaching')]",
+        "diskSizeGB": "[parameters('dataDiskSize')]"
+      },
+      {
+        "name": "[concat(parameters('vmName'), '-data45')]",
+        "lun": 44,
+        "createOption": "Empty",
+        "managedDisk": {
+          "storageAccountType": "[parameters('dataStorageType')]"
+        },
+        "caching": "[parameters('dataDiskCaching')]",
+        "diskSizeGB": "[parameters('dataDiskSize')]"
+      },
+      {
+        "name": "[concat(parameters('vmName'), '-data46')]",
+        "lun": 45,
+        "createOption": "Empty",
+        "managedDisk": {
+          "storageAccountType": "[parameters('dataStorageType')]"
+        },
+        "caching": "[parameters('dataDiskCaching')]",
+        "diskSizeGB": "[parameters('dataDiskSize')]"
+      },
+      {
+        "name": "[concat(parameters('vmName'), '-data47')]",
+        "lun": 46,
+        "createOption": "Empty",
+        "managedDisk": {
+          "storageAccountType": "[parameters('dataStorageType')]"
+        },
+        "caching": "[parameters('dataDiskCaching')]",
+        "diskSizeGB": "[parameters('dataDiskSize')]"
+      },
+      {
+        "name": "[concat(parameters('vmName'), '-data48')]",
+        "lun": 47,
+        "createOption": "Empty",
+        "managedDisk": {
+          "storageAccountType": "[parameters('dataStorageType')]"
+        },
+        "caching": "[parameters('dataDiskCaching')]",
+        "diskSizeGB": "[parameters('dataDiskSize')]"
+      },
+      {
+        "name": "[concat(parameters('vmName'), '-data49')]",
+        "lun": 48,
+        "createOption": "Empty",
+        "managedDisk": {
+          "storageAccountType": "[parameters('dataStorageType')]"
+        },
+        "caching": "[parameters('dataDiskCaching')]",
+        "diskSizeGB": "[parameters('dataDiskSize')]"
+      },
+      {
+        "name": "[concat(parameters('vmName'), '-data50')]",
+        "lun": 49,
+        "createOption": "Empty",
+        "managedDisk": {
+          "storageAccountType": "[parameters('dataStorageType')]"
+        },
+        "caching": "[parameters('dataDiskCaching')]",
+        "diskSizeGB": "[parameters('dataDiskSize')]"
+      },
+      {
+        "name": "[concat(parameters('vmName'), '-data51')]",
+        "lun": 50,
+        "createOption": "Empty",
+        "managedDisk": {
+          "storageAccountType": "[parameters('dataStorageType')]"
+        },
+        "caching": "[parameters('dataDiskCaching')]",
+        "diskSizeGB": "[parameters('dataDiskSize')]"
+      },
+      {
+        "name": "[concat(parameters('vmName'), '-data52')]",
+        "lun": 51,
+        "createOption": "Empty",
+        "managedDisk": {
+          "storageAccountType": "[parameters('dataStorageType')]"
+        },
+        "caching": "[parameters('dataDiskCaching')]",
+        "diskSizeGB": "[parameters('dataDiskSize')]"
+      },
+      {
+        "name": "[concat(parameters('vmName'), '-data53')]",
+        "lun": 52,
+        "createOption": "Empty",
+        "managedDisk": {
+          "storageAccountType": "[parameters('dataStorageType')]"
+        },
+        "caching": "[parameters('dataDiskCaching')]",
+        "diskSizeGB": "[parameters('dataDiskSize')]"
+      },
+      {
+        "name": "[concat(parameters('vmName'), '-data54')]",
+        "lun": 53,
+        "createOption": "Empty",
+        "managedDisk": {
+          "storageAccountType": "[parameters('dataStorageType')]"
+        },
+        "caching": "[parameters('dataDiskCaching')]",
+        "diskSizeGB": "[parameters('dataDiskSize')]"
+      },
+      {
+        "name": "[concat(parameters('vmName'), '-data55')]",
+        "lun": 54,
+        "createOption": "Empty",
+        "managedDisk": {
+          "storageAccountType": "[parameters('dataStorageType')]"
+        },
+        "caching": "[parameters('dataDiskCaching')]",
+        "diskSizeGB": "[parameters('dataDiskSize')]"
+      },
+      {
+        "name": "[concat(parameters('vmName'), '-data56')]",
+        "lun": 55,
+        "createOption": "Empty",
+        "managedDisk": {
+          "storageAccountType": "[parameters('dataStorageType')]"
+        },
+        "caching": "[parameters('dataDiskCaching')]",
+        "diskSizeGB": "[parameters('dataDiskSize')]"
+      },
+      {
+        "name": "[concat(parameters('vmName'), '-data57')]",
+        "lun": 56,
+        "createOption": "Empty",
+        "managedDisk": {
+          "storageAccountType": "[parameters('dataStorageType')]"
+        },
+        "caching": "[parameters('dataDiskCaching')]",
+        "diskSizeGB": "[parameters('dataDiskSize')]"
+      },
+      {
+        "name": "[concat(parameters('vmName'), '-data58')]",
+        "lun": 57,
+        "createOption": "Empty",
+        "managedDisk": {
+          "storageAccountType": "[parameters('dataStorageType')]"
+        },
+        "caching": "[parameters('dataDiskCaching')]",
+        "diskSizeGB": "[parameters('dataDiskSize')]"
+      },
+      {
+        "name": "[concat(parameters('vmName'), '-data59')]",
+        "lun": 58,
+        "createOption": "Empty",
+        "managedDisk": {
+          "storageAccountType": "[parameters('dataStorageType')]"
+        },
+        "caching": "[parameters('dataDiskCaching')]",
+        "diskSizeGB": "[parameters('dataDiskSize')]"
+      },
+      {
+        "name": "[concat(parameters('vmName'), '-data60')]",
+        "lun": 59,
+        "createOption": "Empty",
+        "managedDisk": {
+          "storageAccountType": "[parameters('dataStorageType')]"
+        },
+        "caching": "[parameters('dataDiskCaching')]",
+        "diskSizeGB": "[parameters('dataDiskSize')]"
+      },
+      {
+        "name": "[concat(parameters('vmName'), '-data61')]",
+        "lun": 60,
+        "createOption": "Empty",
+        "managedDisk": {
+          "storageAccountType": "[parameters('dataStorageType')]"
+        },
+        "caching": "[parameters('dataDiskCaching')]",
+        "diskSizeGB": "[parameters('dataDiskSize')]"
+      },
+      {
+        "name": "[concat(parameters('vmName'), '-data62')]",
+        "lun": 61,
+        "createOption": "Empty",
+        "managedDisk": {
+          "storageAccountType": "[parameters('dataStorageType')]"
+        },
+        "caching": "[parameters('dataDiskCaching')]",
+        "diskSizeGB": "[parameters('dataDiskSize')]"
+      },
+      {
+        "name": "[concat(parameters('vmName'), '-data63')]",
+        "lun": 62,
+        "createOption": "Empty",
+        "managedDisk": {
+          "storageAccountType": "[parameters('dataStorageType')]"
+        },
+        "caching": "[parameters('dataDiskCaching')]",
+        "diskSizeGB": "[parameters('dataDiskSize')]"
+      },
+      {
+        "name": "[concat(parameters('vmName'), '-data64')]",
+        "lun": 63,
+        "createOption": "Empty",
+        "managedDisk": {
+          "storageAccountType": "[parameters('dataStorageType')]"
+        },
+        "caching": "[parameters('dataDiskCaching')]",
+        "diskSizeGB": "[parameters('dataDiskSize')]"
+      }
+    ]
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Compute/availabilitySets",
+      "name": "[parameters('availabilitySetName')]",
+      "apiVersion": "2018-10-01",
+      "location": "[resourceGroup().location]",
+      "tags": "[parameters('tags')]",
+      "properties": {
+        "platformUpdateDomainCount": "[parameters('updateDomainCount')]",
+        "platformFaultDomainCount": "[parameters('faultDomainCount')]"
+      },
+      "sku": {
+        "name": "Aligned"
+      }
+    },
+    {
+      "apiVersion": "2018-08-01",
+      "type": "Microsoft.Network/networkInterfaces",
+      "name": "[variables('nicName')]",
+      "location": "[resourceGroup().location]",
+      "tags": "[parameters('tags')]",
+      "dependsOn": [
+      ],
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "subnet": {
+                "id": "[variables('subnetRef')]"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "2018-10-01",
+      "type": "Microsoft.Compute/virtualMachines",
+      "name": "[parameters('vmName')]",
+      "location": "[resourceGroup().location]",
+      "tags": "[parameters('tags')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Compute/availabilitySets/', parameters('availabilitySetName'))]",
+        "[resourceId('Microsoft.Network/networkInterfaces/', variables('nicName'))]"
+      ],
+      "properties": {
+        "hardwareProfile": {
+          "vmSize": "[parameters('vmSize')]"
+        },
+        "availabilitySet": {
+          "id": "[resourceId('Microsoft.Compute/availabilitySets', parameters('availabilitySetName'))]"
+        },
+        "osProfile": {
+          "computerName": "[parameters('vmName')]",
+          "adminUsername": "[parameters('adminUsername')]",
+          "adminPassword": "[parameters('localServerAdminPassword')]"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "MicrosoftWindowsServer",
+            "offer": "WindowsServer",
+            "sku": "[parameters('skuOS')]",
+            "version": "latest"
+          },
+          "osDisk": {
+            "name": "[variables('osDiskName')]",
+            "createOption": "FromImage",
+            "managedDisk": {
+              "storageAccountType": "[parameters('osStorageType')]"
+            },
+            "caching": "ReadWrite"
+          },
+          "dataDisks": "[take(variables('dataDiskArray'), parameters('numDataDisk'))]"
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('nicName'))]"
+            }
+          ]
+        },
+        "diagnosticsProfile":{
+            "bootDiagnostics":{
+              "enabled":true,
+              "storageUri": "https://zna1lrsvmdiagst03.blob.core.windows.net/" }
+          }
+      }
+   
+    },
+   {
+       "type": "Microsoft.Compute/virtualMachines/extensions",
+       "apiVersion": "2018-10-01",
+       "name": "[concat (parameters('vmName'), '/Diagnostics')]",
+       "location": "[resourceGroup().location]",
+       "tags": {
+           "displayName": "[concat ('Windows Azure Diagnostics Extension for ' , parameters('vmName'))]"
+            },
+            "dependsOn": [
+              "[concat ('Microsoft.Compute/virtualMachines/' , parameters('vmName'))]"
+             ],
+ 
+       "properties": {
+           "publisher": "Microsoft.Azure.Diagnostics",
+           "type": "IaaSDiagnostics",
+           "typeHandlerVersion": "1.9",
+           "autoUpgradeMinorVersion": true,
+           "settings": {
+            "storageAccount": "[parameters('diagStorageAccountName')]",
+            "WadCfg": {
+              "DiagnosticMonitorConfiguration": {
+                  "overallQuotaInMB": 5120,
+                  "Metrics": {
+                      "resourceId": "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/', parameters('diagStorageAccountRg'), '/providers/', 'Microsoft.Compute/virtualMachines/', parameters('vmName'))]",
+                      "MetricAggregation": [
+                          {
+                              "scheduledTransferPeriod": "PT1H"
+                          },
+                          {
+                              "scheduledTransferPeriod": "PT1M"
+                          }
+                      ]
+                  },
+                  "DiagnosticInfrastructureLogs": {
+                      "scheduledTransferLogLevelFilter": "Error"
+                  },
+                  "PerformanceCounters": {
+                      "scheduledTransferPeriod": "PT1M",
+                      "PerformanceCounterConfiguration": [
+                          {
+                              "counterSpecifier": "\\Processor Information(_Total)\\% Processor Time",
+                              "unit": "Percent",
+                              "sampleRate": "PT60S"
+                          },
+                          {
+                              "counterSpecifier": "\\Processor Information(_Total)\\% Privileged Time",
+                              "unit": "Percent",
+                              "sampleRate": "PT60S"
+                          },
+                          {
+                              "counterSpecifier": "\\Processor Information(_Total)\\% User Time",
+                              "unit": "Percent",
+                              "sampleRate": "PT60S"
+                          },
+                          {
+                              "counterSpecifier": "\\Processor Information(_Total)\\Processor Frequency",
+                              "unit": "Count",
+                              "sampleRate": "PT60S"
+                          },
+                          {
+                              "counterSpecifier": "\\System\\Processes",
+                              "unit": "Count",
+                              "sampleRate": "PT60S"
+                          },
+                          {
+                              "counterSpecifier": "\\Process(_Total)\\Thread Count",
+                              "unit": "Count",
+                              "sampleRate": "PT60S"
+                          },
+                          {
+                              "counterSpecifier": "\\Process(_Total)\\Handle Count",
+                              "unit": "Count",
+                              "sampleRate": "PT60S"
+                          },
+                          {
+                              "counterSpecifier": "\\System\\System Up Time",
+                              "unit": "Count",
+                              "sampleRate": "PT60S"
+                          },
+                          {
+                              "counterSpecifier": "\\System\\Context Switches/sec",
+                              "unit": "CountPerSecond",
+                              "sampleRate": "PT60S"
+                          },
+                          {
+                              "counterSpecifier": "\\System\\Processor Queue Length",
+                              "unit": "Count",
+                              "sampleRate": "PT60S"
+                          },
+                          {
+                              "counterSpecifier": "\\Memory\\% Committed Bytes In Use",
+                              "unit": "Percent",
+                              "sampleRate": "PT60S"
+                          },
+                          {
+                              "counterSpecifier": "\\Memory\\Available Bytes",
+                              "unit": "Bytes",
+                              "sampleRate": "PT60S"
+                          },
+                          {
+                              "counterSpecifier": "\\Memory\\Committed Bytes",
+                              "unit": "Bytes",
+                              "sampleRate": "PT60S"
+                          },
+                          {
+                              "counterSpecifier": "\\Memory\\Cache Bytes",
+                              "unit": "Bytes",
+                              "sampleRate": "PT60S"
+                          },
+                          {
+                              "counterSpecifier": "\\Memory\\Pool Paged Bytes",
+                              "unit": "Bytes",
+                              "sampleRate": "PT60S"
+                          },
+                          {
+                              "counterSpecifier": "\\Memory\\Pool Nonpaged Bytes",
+                              "unit": "Bytes",
+                              "sampleRate": "PT60S"
+                          },
+                          {
+                              "counterSpecifier": "\\Memory\\Pages/sec",
+                              "unit": "CountPerSecond",
+                              "sampleRate": "PT60S"
+                          },
+                          {
+                              "counterSpecifier": "\\Memory\\Page Faults/sec",
+                              "unit": "CountPerSecond",
+                              "sampleRate": "PT60S"
+                          },
+                          {
+                              "counterSpecifier": "\\Process(_Total)\\Working Set",
+                              "unit": "Count",
+                              "sampleRate": "PT60S"
+                          },
+                          {
+                              "counterSpecifier": "\\Process(_Total)\\Working Set - Private",
+                              "unit": "Count",
+                              "sampleRate": "PT60S"
+                          },
+                          {
+                              "counterSpecifier": "\\LogicalDisk(_Total)\\% Disk Time",
+                              "unit": "Percent",
+                              "sampleRate": "PT60S"
+                          },
+                          {
+                              "counterSpecifier": "\\LogicalDisk(_Total)\\% Disk Read Time",
+                              "unit": "Percent",
+                              "sampleRate": "PT60S"
+                          },
+                          {
+                              "counterSpecifier": "\\LogicalDisk(_Total)\\% Disk Write Time",
+                              "unit": "Percent",
+                              "sampleRate": "PT60S"
+                          },
+                          {
+                              "counterSpecifier": "\\LogicalDisk(_Total)\\% Idle Time",
+                              "unit": "Percent",
+                              "sampleRate": "PT60S"
+                          },
+                          {
+                              "counterSpecifier": "\\LogicalDisk(_Total)\\Disk Bytes/sec",
+                              "unit": "BytesPerSecond",
+                              "sampleRate": "PT60S"
+                          },
+                          {
+                              "counterSpecifier": "\\LogicalDisk(_Total)\\Disk Read Bytes/sec",
+                              "unit": "BytesPerSecond",
+                              "sampleRate": "PT60S"
+                          },
+                          {
+                              "counterSpecifier": "\\LogicalDisk(_Total)\\Disk Write Bytes/sec",
+                              "unit": "BytesPerSecond",
+                              "sampleRate": "PT60S"
+                          },
+                          {
+                              "counterSpecifier": "\\LogicalDisk(_Total)\\Disk Transfers/sec",
+                              "unit": "BytesPerSecond",
+                              "sampleRate": "PT60S"
+                          },
+                          {
+                              "counterSpecifier": "\\LogicalDisk(_Total)\\Disk Reads/sec",
+                              "unit": "BytesPerSecond",
+                              "sampleRate": "PT60S"
+                          },
+                          {
+                              "counterSpecifier": "\\LogicalDisk(_Total)\\Disk Writes/sec",
+                              "unit": "BytesPerSecond",
+                              "sampleRate": "PT60S"
+                          },
+                          {
+                              "counterSpecifier": "\\LogicalDisk(_Total)\\Avg. Disk sec/Transfer",
+                              "unit": "Count",
+                              "sampleRate": "PT60S"
+                          },
+                          {
+                              "counterSpecifier": "\\LogicalDisk(_Total)\\Avg. Disk sec/Read",
+                              "unit": "Count",
+                              "sampleRate": "PT60S"
+                          },
+                          {
+                              "counterSpecifier": "\\LogicalDisk(_Total)\\Avg. Disk sec/Write",
+                              "unit": "Count",
+                              "sampleRate": "PT60S"
+                          },
+                          {
+                              "counterSpecifier": "\\LogicalDisk(_Total)\\Avg. Disk Queue Length",
+                              "unit": "Count",
+                              "sampleRate": "PT60S"
+                          },
+                          {
+                              "counterSpecifier": "\\LogicalDisk(_Total)\\Avg. Disk Read Queue Length",
+                              "unit": "Count",
+                              "sampleRate": "PT60S"
+                          },
+                          {
+                              "counterSpecifier": "\\LogicalDisk(_Total)\\Avg. Disk Write Queue Length",
+                              "unit": "Count",
+                              "sampleRate": "PT60S"
+                          },
+                          {
+                              "counterSpecifier": "\\LogicalDisk(_Total)\\% Free Space",
+                              "unit": "Percent",
+                              "sampleRate": "PT60S"
+                          },
+                          {
+                              "counterSpecifier": "\\LogicalDisk(_Total)\\Free Megabytes",
+                              "unit": "Count",
+                              "sampleRate": "PT60S"
+                          },
+                          {
+                              "counterSpecifier": "\\Network Interface(*)\\Bytes Total/sec",
+                              "unit": "BytesPerSecond",
+                              "sampleRate": "PT60S"
+                          },
+                          {
+                              "counterSpecifier": "\\Network Interface(*)\\Bytes Sent/sec",
+                              "unit": "BytesPerSecond",
+                              "sampleRate": "PT60S"
+                          },
+                          {
+                              "counterSpecifier": "\\Network Interface(*)\\Bytes Received/sec",
+                              "unit": "BytesPerSecond",
+                              "sampleRate": "PT60S"
+                          },
+                          {
+                              "counterSpecifier": "\\Network Interface(*)\\Packets/sec",
+                              "unit": "BytesPerSecond",
+                              "sampleRate": "PT60S"
+                          },
+                          {
+                              "counterSpecifier": "\\Network Interface(*)\\Packets Sent/sec",
+                              "unit": "BytesPerSecond",
+                              "sampleRate": "PT60S"
+                          },
+                          {
+                              "counterSpecifier": "\\Network Interface(*)\\Packets Received/sec",
+                              "unit": "BytesPerSecond",
+                              "sampleRate": "PT60S"
+                          },
+                          {
+                              "counterSpecifier": "\\Network Interface(*)\\Packets Outbound Errors",
+                              "unit": "Count",
+                              "sampleRate": "PT60S"
+                          },
+                          {
+                              "counterSpecifier": "\\Network Interface(*)\\Packets Received Errors",
+                              "unit": "Count",
+                              "sampleRate": "PT60S"
+                          }
+                      ]
+                  },
+                  "WindowsEventLog": {
+                      "scheduledTransferPeriod": "PT1M",
+                      "DataSource": [
+                          {
+                              "name": "Application!*[System[(Level = 1 or Level = 2 or Level = 3)]]"
+                          },
+                          {
+                              "name": "Security!*[System[band(Keywords,4503599627370496)]]"
+                          },
+                          {
+                              "name": "System!*[System[(Level = 1 or Level = 2 or Level = 3)]]"
+                          }
+                      ]
+                  }
+              }
+          }
+      },
+           "protectedSettings": {
+               "storageAccountName": "[parameters('diagStorageAccountName')]",
+               "storageAccountKey": "[listkeys(concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/', parameters('diagStorageAccountRg'), variables('diagnosticStorageAccount')), '2015-06-15').key1]",
+               "storageAccountEndPoint": "[parameters('diagStorageAccountEndPoint')]"
+           }
+       }
+  },
+{
+    "type": "Microsoft.Resources/deployments",
+    "name": "[concat(parameters('vmName'), '-' , 'BackupIntent')]",
+    "apiVersion": "2017-05-10",
+    "resourceGroup": "[parameters('backupVaultRGName')]",
+    "properties": {
+        "mode": "Incremental",
+        "template": {
+            "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+            "contentVersion": "1.0.0.0",
+            "resources": [
+                {
+                    "name": "[concat(parameters('backupVaultName'), '/', variables('backupFabricName'), '/', variables('backupItemName'))]",
+                    "apiVersion": "2017-07-01",
+                    "type": "Microsoft.RecoveryServices/vaults/backupFabrics/backupProtectionIntent",
+                    "properties": {
+                        "friendlyName": "[concat(parameters('vmName'), 'BackupIntent')]",
+                        "protectionIntentItemType": "AzureResourceItem",
+                        "policyId": "[resourceId(parameters('backupVaultRGName'), 'Microsoft.RecoveryServices/vaults/backupPolicies', parameters('backupVaultName'), parameters('backupPolicyName'))]",
+                        "sourceResourceId": "[resourceId(parameters('virtualMachineRG'), 'Microsoft.Compute/virtualMachines', parameters('vmName'))]"
+                    }
+                }
+            ]
+        }
+    },
+    "dependsOn": [
+        "[resourceId(parameters('virtualMachineRG'), 'Microsoft.Compute/virtualMachines', parameters('vmName'))]"
+    ]
+},
+{
+  "type": "Microsoft.Compute/virtualMachines/extensions",
+  "name": "[concat(parameters('vmName'), '/', 'NetworkWatcher')]",
+  "apiVersion": "2018-10-01",
+  "location": "[resourceGroup().location]",
+  "scale": null,
+  "properties": {
+      "autoUpgradeMinorVersion": true,
+      "publisher": "Microsoft.Azure.NetworkWatcher",
+      "type": "NetworkWatcherAgentWindows",
+      "typeHandlerVersion": "1.4"
+  },
+  "dependsOn": [
+      "[resourceId('Microsoft.Compute/virtualMachines', parameters('vmName'))]"
+  ]
+},
+{
+  "type": "Microsoft.Compute/virtualMachines/extensions",
+  "name": "[concat(parameters('vmName'),'/Microsoft.EnterpriseCloud.Monitoring')]",
+  "apiVersion": "2018-10-01",
+  "location": "[resourceGroup().location]",
+  "dependsOn": [
+    "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'))]"
+  ],
+  "properties": {
+    "publisher": "Microsoft.EnterpriseCloud.Monitoring",
+    "type": "MicrosoftMonitoringAgent",
+    "typeHandlerVersion": "1.0",
+    "autoUpgradeMinorVersion": true,
+    "settings": {
+      "workspaceId": "[parameters('logAnalyticsWorkspaceID')]"
+    },
+    "protectedSettings": {
+      "workspaceKey": "[parameters('logAnalyticsWorkspaceKey')]"
+    }
+  }
+},
+{
+  "type": "Microsoft.Compute/virtualMachines/extensions",
+  "name": "[concat(parameters('vmName'), '/DependencyAgent')]",
+  "apiVersion": "2017-03-30",
+  "location": "[resourceGroup().location]",
+  "dependsOn": [
+      "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'))]"
+  ],
+  "properties": {
+      "publisher": "Microsoft.Azure.Monitoring.DependencyAgent",
+      "type": "DependencyAgentWindows",
+      "typeHandlerVersion": "9.4",
+      "settings": {},
+      "protectedSettings": {},
+      "autoUpgradeMinorVersion": true
+  }
+  }
+  
+  ],
+  "outputs": {
+    "nicName": {
+      "type": "string",
+      "value": "[variables('nicName')]"
+    }
+  }
+}
