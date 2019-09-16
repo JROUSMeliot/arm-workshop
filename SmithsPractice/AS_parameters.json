@@ -1,0 +1,40 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "apiVersion": {
+            "value": "2016-04-30-preview"
+        },
+        "name": {
+            "value": "zeu1-bis-prd-dc-as"
+        },
+        "faultDomains": {
+            "value": 2
+        },
+        "updateDomains": {
+            "value": 3
+        },
+        "location": {
+            "value": "westeurope"
+        },
+        "sku": {
+            "value": "Aligned"
+        },
+        "tags": {"value": {
+            "Service": "Infrastructure",
+            "PCI DSS": "No",
+            "SME E-mail": "BIS AD Team",
+            "Timezone": "-0600",
+            "Maintenance Windows": "Standard",
+            "Environment": "Production",
+            "Schedule": "24 x 7",
+            "Data Classification": "Smiths Confidential",
+            "Division": "BIS",
+            "Owner Phone": "+1 651 402 9368",
+            "Department": "IT",
+            "PII": "No",
+            "Application": "Active Directory"
+                }
+            }
+    }
+}
