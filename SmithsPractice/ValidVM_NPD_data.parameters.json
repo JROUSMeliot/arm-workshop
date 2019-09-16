@@ -1,0 +1,73 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    
+    "vmName": { "value": "zeu1spdc004" },
+    "virtualMachineRG": {"value":"zeu1-bis-npd-testdc-rg"},
+    "availabilitySetName": {"value": "zeu1-bis-npd-testdc-datadc-as" },
+    "updateDomainCount": { "value": 3 },
+    "faultDomainCount": { "value": 2 },
+    "skuOS": { "value": "2016-Datacenter" },
+    "vNetResourceGroup": { "value": "zeu1-bis-npd-vnet-rg" },
+    "vNetName": { "value": "zeu1-bis-npd-vnet01" },
+    "subnetName": { "value": "zeu1-bis-npd-data-subnet01" },
+    "vmSize": { "value": "Standard_D2s_v3" },
+    "osStorageType": { "value": "Premium_LRS" },
+    "numDataDisk": { "value": 1 },
+    "dataStorageType": { "value": "Premium_LRS" },
+    "dataDiskCaching": { "value": "ReadWrite" },
+    "dataDiskSize": { "value": 128 },
+    "adminUsername": { "value": "bisAzureAdmin" },
+    "backupVaultRGName": {"value": "zeu1-bis-prd-backup-rg"},
+    "backupVaultName": {"value": "zeu1-prd-infra-backup01"}, 
+    "backupPolicyName": {"value":"Smiths-Standard"},
+    "diagStorageAccountName": { "value": "zeu1lrsvmdiagst01" },
+    "diagStorageAccountRg": { "value": "zeu1-bis-prd-diag-rg" },
+    "diagStorageAccountEndPoint":{"value":"https://zeu1lrsvmdiagst01.blob.core.windows.net/"},
+    "logAnalyticsRG":{"value":"zna3-bis-prd-logging-rg"},
+    "logAnalyticsName":{"value":"zna3-bis-prd-log01"},
+    "logAnalyticsWorkspaceID": {"value":"4c7a111a-a43c-46f3-a99f-9c0408f7c7cf"},
+    "logAnalyticsWorkspaceKey": {"value":"Lta4XBaFn89heibLF7f6XjLZP0VewgyFXvbrusiolOf47BsuDvZrtNYgTJpq+jcO37JDeAYBH6/9vW04+g6oYg=="},
+    "automationAccountRG": {"value":"zna3-bis-prd-logging-rg"},
+    "automationAccountName": {"value":"zna5-bis-prd-auto01"},
+    "nodeConfigurationName":{"value":"Azure_Baseline_Config.localhost"},
+    "domainToJoin": {"value": "SMITHSNET"},
+    "ouPath": {"value": "OU=NON-Production,OU=Servers,OU=Azure,DC=smiths,DC=net"},
+    "domainUsername": {"value": "ConfigMgrSvrPush-SA"},
+    "domainJoinOptions": {"value": 3},
+    "domainJoinPassword": {
+        "reference":{
+            "keyVault": {
+                "id":"/subscriptions/8c3d59f9-1481-4dda-9b6f-263e5f412c7d/resourceGroups/bis-dev-usnc-keyvault-rg/providers/Microsoft.KeyVault/vaults/bis-dev-usnc-keyvault"
+            },
+            "secretName": "domainJoin"
+            }
+        },
+    "localServerAdminPassword": {
+            "reference":{
+                "keyVault": {
+                    "id":"/subscriptions/8c3d59f9-1481-4dda-9b6f-263e5f412c7d/resourceGroups/bis-dev-usnc-keyvault-rg/providers/Microsoft.KeyVault/vaults/bis-dev-usnc-keyvault"
+                },
+                "secretName": "localServerAdminPassword"
+                }
+            },      
+    "tags": {"value": {
+        "Service": "Infrastructure",
+        "PCI DSS": "No",
+        "SME E-mail": "BIS AD Team",
+        "Owner E-mail": "Sebastien.meliot@smiths.com",
+        "Timezone": "+0100",
+        "Maintenance Windows": "Standard",
+        "Environment": "Development",
+        "Schedule": "24 x 7",
+        "Data Classification": "Internal",
+        "Division": "BIS",
+        "Owner Phone": "+1 651 402 9368",
+        "Department": "IT",
+        "PII": "No",
+        "Application": "Active Directory"
+            }
+        }
+    }
+}

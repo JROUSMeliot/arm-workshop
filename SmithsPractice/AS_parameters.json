@@ -6,7 +6,7 @@
             "value": "2016-04-30-preview"
         },
         "name": {
-            "value": "zeu1-bis-prd-dc-as"
+            "value": "zeu1-bis-prd-testdc-appdc-as"
         },
         "faultDomains": {
             "value": 2
@@ -24,7 +24,7 @@
             "Service": "Infrastructure",
             "PCI DSS": "No",
             "SME E-mail": "BIS AD Team",
-            "Timezone": "-0600",
+            "Timezone": "-0100",
             "Maintenance Windows": "Standard",
             "Environment": "Production",
             "Schedule": "24 x 7",
