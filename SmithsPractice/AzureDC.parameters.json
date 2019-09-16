@@ -1,0 +1,51 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    
+    "vmName": { "value": "zna1spdc004" },
+    "availabilitySetName": {"value": "zna1-bis-prd-dc-dc-as" },
+    "updateDomainCount": { "value": 2 },
+    "faultDomainCount": { "value": 2 },
+    "skuOS": { "value": "2016-Datacenter" },
+    "vNetResourceGroup": { "value": "zna1-bis-prd-vnet-rg" },
+    "vNetName": { "value": "zna1-bis-prd-vnet01" },
+    "subnetName": { "value": "zna1-bis-prd-app-subnet01" },
+    "staticIPAddress": { "value": "10.216.0.50" },
+    "vmSize": { "value": "Standard_D2s_v3" },
+    "osStorageType": { "value": "Premium_LRS" },
+    "numDataDisk": { "value": 1 },
+    "dataStorageType": { "value": "Premium_LRS" },
+    "dataDiskCaching": { "value": "None" },
+    "dataDiskSize": { "value": 128 },
+    "adminUsername": { "value": "bisAzureAdmin" },
+    "automationAccountRG": {"value":"zna3-bis-prd-logging-rg"},
+    "automationAccountName": {"value":"zna5-bis-prd-auto01"},
+    "nodeConfigurationName":{"value":"Azure_DC_Config.localhost"},
+    "localServerAdminPassword": {
+        "reference":{
+            "keyVault": {
+                "id":"/subscriptions/823c312b-c266-4f6b-a93e-4b71bf0af10e/resourceGroups/zna1-bis-prd-kv-rg/providers/Microsoft.KeyVault/vaults/zna1-bis-prd-admin-kv01"
+            },
+            "secretName": "localServerAdminPassword"
+            }
+        },  
+    "tags": {"value": {
+        "Owner E-mail":"david.gee@smiths.com",
+        "Service": "Infrastructure",
+        "PCI DSS": "No",
+        "SME E-mail": "BIS AD Team",
+        "Timezone": "-0600",
+        "Maintenance Windows": "Standard",
+        "Environment": "Production",
+        "Schedule": "24 x 7",
+        "Data Classification": "Smiths Confidential",
+        "Division": "BIS",
+        "Owner Phone": "+1 651 402 9368",
+        "Department": "IT",
+        "PII": "No",
+        "Application": "Active Directory"
+            }
+        }
+    }
+}
